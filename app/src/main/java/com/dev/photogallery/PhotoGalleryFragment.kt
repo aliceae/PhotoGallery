@@ -1,14 +1,19 @@
 package com.dev.photogallery
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.appcompat.widget.SearchView
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.work.*
 import com.dev.photogallery.databinding.FragmentPhotoGalleryBinding
@@ -50,7 +55,17 @@ class PhotoGalleryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 photoGalleryViewModel.uiState.collect { state ->
-                    binding.photoGrid.adapter = PhotoListAdapter(state.images)
+                    binding.photoGrid.adapter = PhotoListAdapter(
+                        state.images
+                    ) { photoPageUri ->
+                        CustomTabsIntent.Builder()
+                            .setToolbarColor(
+                                    ContextCompat.getColor(requireContext(),
+                                    R.color.colorPrimary))
+                            .setShowTitle(true)
+                            .build()
+                            .launchUrl(requireContext(), photoPageUri)
+                    }
                     searchView?.setQuery(state.query, false)
                     updatePollingState(state.isPolling)
                 }
